@@ -1,0 +1,75 @@
+﻿@page "/despensas"
+@inject HttpClient _http;
+@inject NavigationManager _navegardespensa;
+
+<h3>Despensas</h3>
+
+@if (cargando)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+}
+else
+{
+    @if (losalimentos.Count > 0)
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Fecha de caducidad</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Alimentos alimento in losalimentos)
+                {
+                    <tr>
+                        <td>@alimento.Nombredespensa</td>
+                        <td>@alimento.Cantidaddespensa</td>
+                        <td>@alimento.Fechacaducidad</td>
+                        <td>
+                            <button class="btn btn-sm" @onclick="()=>Eliminar(alimento.Id)"><span class="oi oi-trash"></span></button>
+                            <button class="btn btn-sm" @onclick="()=>Modificar(alimento.Id)"><span class="oi oi-pencil"></span></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <h2>No existen alimentos registrados</h2>
+    }
+}
+
+
+@code {
+    private List<Alimentos> losalimentos = new();
+    private bool cargando = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargar();
+    }
+
+    private async Task Cargar()
+    {
+        losalimentos = await _http.GetFromJsonAsync<List<Alimentos>>("api/alimentos");
+        cargando = false;
+    }
+
+    private async Task Eliminar(int id)
+    {
+        cargando = true;
+        await _http.DeleteAsync($"api/alimentos/{id}");
+        await Cargar();
+    }
+
+    private void Modificar(int id)
+    {
+        _navegardespensa.NavigateTo($"/nueva/{id}");
+    }
+}

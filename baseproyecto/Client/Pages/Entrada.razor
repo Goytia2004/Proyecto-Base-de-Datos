@@ -1,0 +1,75 @@
+﻿@page "/entrada"
+@inject HttpClient _http;
+@inject NavigationManager _navegarentrada;
+
+<h3>Entrada</h3>
+
+@if (cargando)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+}
+else
+{
+    @if (laentrada.Count > 0)
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Fecha de entrada</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Entrada entrada in laentrada)
+                {
+                    <tr>
+                        <td>@entrada.Nombreentrada</td>
+                        <td>@entrada.Cantidadentrada</td>
+                        <td>@entrada.Fechaentrada</td>
+                        <td>
+                            <button class="btn btn-sm" @onclick="()=>Eliminar(entrada.Id)"><span class="oi oi-trash"></span></button>
+                            <button class="btn btn-sm" @onclick="()=>Modificar(entrada.Id)"><span class="oi oi-pencil"></span></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <h2>No existen entradas registradas</h2>
+    }
+}
+
+
+@code {
+    private List<Entrada> laentrada = new();
+    private bool cargando = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargar();
+    }
+
+    private async Task Cargar()
+    {
+        laentrada = await _http.GetFromJsonAsync<List<Entrada>>("api/entradas");
+        cargando = false;
+    }
+
+    private async Task Eliminar(int id)
+    {
+        cargando = true;
+        await _http.DeleteAsync($"api/entradas/{id}");
+        await Cargar();
+    }
+
+    private void Modificar(int id)
+    {
+        _navegarentrada.NavigateTo($"/nueva/{id}");
+    }
+}
